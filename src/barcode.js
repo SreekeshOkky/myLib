@@ -1,0 +1,60 @@
+export async function scanBarcode() {
+  if (!('BarcodeDetector' in window)) {
+    throw new Error('NOT_SUPPORTED')
+  }
+
+  const formats = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'isbn_13', 'isbn_10', 'code_39', 'code_128']
+  const detector = new BarcodeDetector({ formats })
+
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'environment' },
+  })
+
+  const video = document.createElement('video')
+  video.srcObject = stream
+  video.setAttribute('playsinline', '')
+  video.setAttribute('autoplay', '')
+  video.setAttribute('muted', '')
+
+  await new Promise((resolve) => {
+    video.onloadedmetadata = () => {
+      video.play().then(resolve)
+    }
+  })
+
+  return new Promise((resolve, reject) => {
+    let stopped = false
+    const stop = () => {
+      if (stopped) return
+      stopped = true
+      stream.getTracks().forEach((t) => t.stop())
+      video.remove()
+    }
+
+    const scan = async () => {
+      if (stopped) return
+      try {
+        const codes = await detector.detect(video)
+        if (codes.length > 0) {
+          stop()
+          resolve(codes[0].rawValue)
+          return
+        }
+      } catch { }
+      if (!stopped) requestAnimationFrame(scan)
+    }
+
+    scan()
+
+    setTimeout(() => {
+      if (!stopped) {
+        stop()
+        reject(new Error('TIMEOUT'))
+      }
+    }, 30000)
+  })
+}
+
+export function isBarcodeSupported() {
+  return 'BarcodeDetector' in window
+}
