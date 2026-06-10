@@ -1,4 +1,4 @@
-export async function scanBarcode() {
+export async function scanBarcode(container) {
   if (!('BarcodeDetector' in window)) {
     throw new Error('NOT_SUPPORTED')
   }
@@ -13,7 +13,7 @@ export async function scanBarcode() {
   let stream
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment' },
+      video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
     })
   } catch (err) {
     if (err.name === 'NotAllowedError') {
@@ -36,6 +36,16 @@ export async function scanBarcode() {
   video.setAttribute('playsinline', '')
   video.setAttribute('autoplay', '')
   video.setAttribute('muted', '')
+  video.style.width = '100%'
+  video.style.maxHeight = '300px'
+  video.style.borderRadius = '12px'
+  video.style.objectFit = 'cover'
+  video.style.background = '#000'
+
+  if (container) {
+    container.innerHTML = ''
+    container.appendChild(video)
+  }
 
   await new Promise((resolve) => {
     video.onloadedmetadata = () => {

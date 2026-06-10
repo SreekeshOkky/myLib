@@ -580,8 +580,8 @@ function attachScanEvents() {
     scanBtn.disabled = true
     scanBtn.textContent = 'Scanning…'
     try {
-      const code = await scanBarcode()
       const preview = $('#scan-preview')
+      const code = await scanBarcode(preview)
       if (preview) preview.innerHTML = `<p class="scan-success">Scanned: ${code}</p>`
       isbnInput.value = code
       lookupBtn.click()
