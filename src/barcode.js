@@ -3,12 +3,33 @@ export async function scanBarcode() {
     throw new Error('NOT_SUPPORTED')
   }
 
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw new Error('NO_CAMERA_API')
+  }
+
   const formats = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'isbn_13', 'isbn_10', 'code_39', 'code_128']
   const detector = new BarcodeDetector({ formats })
 
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: 'environment' },
-  })
+  let stream
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+    })
+  } catch (err) {
+    if (err.name === 'NotAllowedError') {
+      throw new Error('PERMISSION_DENIED')
+    }
+    if (err.name === 'NotFoundError') {
+      throw new Error('NO_CAMERA')
+    }
+    if (err.name === 'NotReadableError') {
+      throw new Error('CAMERA_BUSY')
+    }
+    if (err.name === 'NotSupportedError' || err.name === 'SecurityError') {
+      throw new Error('INSECURE_CONTEXT')
+    }
+    throw new Error('CAMERA_FAILED')
+  }
 
   const video = document.createElement('video')
   video.srcObject = stream

@@ -499,6 +499,7 @@ function showLabelManager() {
 
 function renderScan() {
   const supported = isBarcodeSupported()
+  const insecure = location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1'
   return `
     <div class="sheet-page scan-page">
       <header class="app-bar">
@@ -511,7 +512,9 @@ function renderScan() {
           <div class="scan-icon">📷</div>
           <h2>Scan a Barcode</h2>
           <p>Point your camera at the ISBN barcode on the back of your book.</p>
-          ${supported ? '<button class="btn btn-primary btn-lg" id="scan-btn">Scan Barcode</button>' : '<p class="hint">Barcode scanning is not available in this browser. Enter the ISBN manually below.</p>'}
+          ${insecure ? '<p class="hint error">Camera access requires HTTPS. Open this app via HTTPS to scan barcodes.</p>' : ''}
+          ${supported && !insecure ? '<button class="btn btn-primary btn-lg" id="scan-btn">Scan Barcode</button>' : ''}
+          ${!supported ? '<p class="hint">Barcode scanning is not available in this browser. Enter the ISBN manually below.</p>' : ''}
         </div>
 
         <div class="divider"><span>or</span></div>
@@ -583,13 +586,19 @@ function attachScanEvents() {
       isbnInput.value = code
       lookupBtn.click()
     } catch (err) {
-      if (err.message === 'NOT_SUPPORTED') {
-        $('#scan-preview').innerHTML = '<p class="hint error">Barcode scanner not supported on this device.</p>'
-      } else if (err.message === 'TIMEOUT') {
-        $('#scan-preview').innerHTML = '<p class="hint error">Scan timed out. Try entering the ISBN manually.</p>'
-      } else {
-        $('#scan-preview').innerHTML = '<p class="hint error">Camera access denied or unavailable.</p>'
+      const preview = $('#scan-preview')
+      const msgs = {
+        NOT_SUPPORTED: 'Barcode scanner not supported on this device.',
+        NO_CAMERA_API: 'Camera access is not available in this browser.',
+        PERMISSION_DENIED: 'Camera permission denied. Grant access in your browser or device settings.',
+        NO_CAMERA: 'No camera found on this device.',
+        CAMERA_BUSY: 'Camera is busy or in use by another app.',
+        INSECURE_CONTEXT: 'Camera requires HTTPS. Open this app via HTTPS or localhost.',
+        CAMERA_FAILED: 'Camera access failed for an unknown reason.',
+        TIMEOUT: 'Scan timed out. Try entering the ISBN manually.',
       }
+      const msg = msgs[err.message] || 'Camera access denied or unavailable.'
+      if (preview) preview.innerHTML = `<p class="hint error">${msg}</p>`
     }
     scanBtn.disabled = false
     scanBtn.textContent = 'Scan Barcode'
