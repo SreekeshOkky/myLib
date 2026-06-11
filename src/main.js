@@ -10,6 +10,7 @@ let allBooks = []
 let allLabels = []
 let currentRoute = ''
 let activeAuthor = ''
+let activeLoan = ''
 
 function navigate(path) {
   history.pushState(null, '', '#' + (path || '/'))
@@ -98,7 +99,6 @@ function renderHome(books, labels) {
   const activeLang = $('#lang-filter')?.value || ''
   const activeRating = Number($('#rating-filter')?.value) || 0
   const activeStatus = $('#status-filter')?.value || ''
-  const activeLoan = $('#loan-filter')?.value || ''
   const activeSort = $('#sort-filter')?.value || 'date-new'
 
   let filtered = books
@@ -198,13 +198,12 @@ function renderHome(books, labels) {
               <option value="finished" ${activeStatus === 'finished' ? 'selected' : ''}>Finished</option>
             </select>
           </div>
-          <div class="select-wrap filter-loan">
-            <select id="loan-filter">
-              <option value="">All Loans</option>
-              <option value="loaned" ${activeLoan === 'loaned' ? 'selected' : ''}>Loaned Out</option>
-              <option value="available" ${activeLoan === 'available' ? 'selected' : ''}>Available</option>
-            </select>
-          </div>
+        </div>
+        <div class="loan-tabs">
+          <button class="loan-tab ${!activeLoan ? 'active' : ''}" data-loan="">All</button>
+          <button class="loan-tab ${activeLoan === 'loaned' ? 'active' : ''}" data-loan="loaned">Loaned</button>
+          <button class="loan-tab ${activeLoan === 'available' ? 'active' : ''}" data-loan="available">Available</button>
+        </div>
         </div>
         <span class="book-count">${sorted.length} book${sorted.length !== 1 ? 's' : ''}</span>
       </div>
@@ -269,6 +268,14 @@ function attachHomeEvents() {
     navigate('/')
   })
 
+  $$('.loan-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      activeLoan = tab.dataset.loan
+      $$('.loan-tab').forEach((t) => t.classList.toggle('active', t.dataset.loan === activeLoan))
+      updateBookGrid()
+    })
+  })
+
   attachCardEditButtons()
 }
 
@@ -291,7 +298,6 @@ async function updateBookGrid() {
   const activeLang = $('#lang-filter')?.value || ''
   const activeRating = Number($('#rating-filter')?.value) || 0
   const activeStatus = $('#status-filter')?.value || ''
-  const activeLoan = $('#loan-filter')?.value || ''
   const activeSort = $('#sort-filter')?.value || 'date-new'
 
   let filtered = allBooks

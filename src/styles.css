@@ -1077,10 +1077,37 @@ body {
   font-size: 0.875rem;
 }
 
-/* ───── Loan filter ───── */
+/* ───── Loan Tabs ───── */
 
-.filter-loan {
-  max-width: 130px;
+.loan-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px 8px;
+}
+
+.loan-tab {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid var(--surface2);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  text-align: center;
+}
+
+.loan-tab:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.loan-tab.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 
 /* ───── Modal ───── */
