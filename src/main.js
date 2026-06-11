@@ -246,6 +246,7 @@ function attachHomeEvents() {
   $('#search-input')?.addEventListener('input', debouncedSearch)
   $('#lang-filter')?.addEventListener('change', updateBookGrid)
   $('#rating-filter')?.addEventListener('change', updateBookGrid)
+  $('#status-filter')?.addEventListener('change', updateBookGrid)
   $('#sort-filter')?.addEventListener('change', updateBookGrid)
   $('#add-book-fab')?.addEventListener('click', () => navigate('/add'))
   $('#manage-labels-btn')?.addEventListener('click', showLabelManager)
