@@ -110,7 +110,7 @@ function renderHome(books, labels) {
     )
   }
   if (activeLang) {
-    filtered = filtered.filter((b) => (b.language || '') === activeLang)
+    filtered = filtered.filter((b) => (b.language || '').trim().toLowerCase() === activeLang.toLowerCase())
   }
   if (activeRating) {
     filtered = filtered.filter((b) => (b.rating || 0) >= activeRating)
@@ -130,7 +130,8 @@ function renderHome(books, labels) {
   }
 
   const sorted = sortBooks(filtered, activeSort)
-  const languages = [...new Set(books.map((b) => b.language).filter(Boolean))].sort()
+  const rawLangs = [...new Set(books.map((b) => b.language).filter(Boolean).map((l) => l.trim()))]
+  const languages = rawLangs.sort((a, b) => a.localeCompare(b))
 
   return `
     <div class="page home-page">
@@ -298,7 +299,7 @@ async function updateBookGrid() {
     )
   }
   if (activeLang) {
-    filtered = filtered.filter((b) => (b.language || '') === activeLang)
+    filtered = filtered.filter((b) => (b.language || '').trim().toLowerCase() === activeLang.toLowerCase())
   }
   if (activeRating) {
     filtered = filtered.filter((b) => (b.rating || 0) >= activeRating)
