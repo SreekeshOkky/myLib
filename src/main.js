@@ -95,7 +95,6 @@ window.addEventListener('popstate', handleRoute)
 
 function renderHome(books, labels) {
   const searchQuery = $('#search-input')?.value?.toLowerCase() || ''
-  const activeLabel = $('#label-filter')?.value || ''
   const activeLang = $('#lang-filter')?.value || ''
   const activeRating = Number($('#rating-filter')?.value) || 0
   const activeStatus = $('#status-filter')?.value || ''
@@ -109,9 +108,6 @@ function renderHome(books, labels) {
         b.author?.toLowerCase().includes(searchQuery) ||
         b.isbn?.includes(searchQuery)
     )
-  }
-  if (activeLabel) {
-    filtered = filtered.filter((b) => (b.labels || []).includes(activeLabel))
   }
   if (activeLang) {
     filtered = filtered.filter((b) => (b.language || '') === activeLang)
@@ -159,12 +155,6 @@ function renderHome(books, labels) {
       <div class="filter-row">
         <div class="filter-selects">
           <div class="select-wrap">
-            <select id="label-filter">
-              <option value="">All Labels</option>
-              ${labels.map((l) => `<option value="${l}" ${activeLabel === l ? 'selected' : ''}>${l}</option>`).join('')}
-            </select>
-          </div>
-          <div class="select-wrap">
             <select id="lang-filter">
               <option value="">All Languages</option>
               ${languages.map((l) => `<option value="${l}" ${activeLang === l ? 'selected' : ''}>${l}</option>`).join('')}
@@ -204,12 +194,11 @@ function renderHome(books, labels) {
           <button class="loan-tab ${activeLoan === 'loaned' ? 'active' : ''}" data-loan="loaned">Loaned</button>
           <button class="loan-tab ${activeLoan === 'available' ? 'active' : ''}" data-loan="available">Available</button>
         </div>
-        </div>
         <span class="book-count">${sorted.length} book${sorted.length !== 1 ? 's' : ''}</span>
       </div>
 
       <div class="book-grid" id="book-grid">
-        ${sorted.length === 0 ? renderEmpty(searchQuery, activeLabel, activeLang, activeRating, activeAuthor, activeStatus, activeLoan) : sorted.map(renderBookCard).join('')}
+        ${sorted.length === 0 ? renderEmpty(searchQuery, activeLang, activeRating, activeAuthor, activeStatus, activeLoan) : sorted.map(renderBookCard).join('')}
       </div>
 
       <button class="fab" id="add-book-fab" title="Add Book">＋</button>
@@ -217,8 +206,8 @@ function renderHome(books, labels) {
   `
 }
 
-function renderEmpty(search, label, lang, rating, author, status, loan) {
-  if (search || label || lang || rating || author || status || loan) return '<div class="empty-state">No books match your filters.</div>'
+function renderEmpty(search, lang, rating, author, status, loan) {
+  if (search || lang || rating || author || status || loan) return '<div class="empty-state">No books match your filters.</div>'
   return `
     <div class="empty-state">
       <div class="empty-icon">📚</div>
@@ -255,7 +244,6 @@ function attachHomeEvents() {
   const debouncedSearch = debounce(updateBookGrid, 250)
 
   $('#search-input')?.addEventListener('input', debouncedSearch)
-  $('#label-filter')?.addEventListener('change', updateBookGrid)
   $('#lang-filter')?.addEventListener('change', updateBookGrid)
   $('#rating-filter')?.addEventListener('change', updateBookGrid)
   $('#sort-filter')?.addEventListener('change', updateBookGrid)
@@ -294,7 +282,6 @@ async function updateBookGrid() {
   allLabels = await db.getLabels()
 
   const searchQuery = $('#search-input')?.value?.toLowerCase() || ''
-  const activeLabel = $('#label-filter')?.value || ''
   const activeLang = $('#lang-filter')?.value || ''
   const activeRating = Number($('#rating-filter')?.value) || 0
   const activeStatus = $('#status-filter')?.value || ''
@@ -308,9 +295,6 @@ async function updateBookGrid() {
         b.author?.toLowerCase().includes(searchQuery) ||
         b.isbn?.includes(searchQuery)
     )
-  }
-  if (activeLabel) {
-    filtered = filtered.filter((b) => (b.labels || []).includes(activeLabel))
   }
   if (activeLang) {
     filtered = filtered.filter((b) => (b.language || '') === activeLang)
@@ -337,7 +321,7 @@ async function updateBookGrid() {
   const grid = $('#book-grid')
   if (grid) {
     grid.innerHTML = sorted.length === 0
-      ? renderEmpty(searchQuery, activeLabel, activeLang, activeRating, activeAuthor, activeStatus, activeLoan)
+      ? renderEmpty(searchQuery, activeLang, activeRating, activeAuthor, activeStatus, activeLoan)
       : sorted.map(renderBookCard).join('')
   }
 
