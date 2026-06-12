@@ -2,6 +2,8 @@ const DB_NAME = 'MyLibraryDB'
 const DB_VERSION = 1
 const STORES = { books: 'books', labels: 'labels' }
 
+let dbInstance = null
+
 function openDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
@@ -28,8 +30,14 @@ function openDB() {
   })
 }
 
+async function getDB() {
+  if (dbInstance) return dbInstance
+  dbInstance = await openDB()
+  return dbInstance
+}
+
 async function withStore(storeName, mode, callback) {
-  const db = await openDB()
+  const db = await getDB()
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, mode)
     const store = tx.objectStore(storeName)
@@ -39,17 +47,10 @@ async function withStore(storeName, mode, callback) {
     } catch (err) {
       reject(err)
       tx.abort()
-      db.close()
       return
     }
-    tx.oncomplete = () => {
-      resolve(req.result)
-      db.close()
-    }
-    tx.onerror = () => {
-      reject(tx.error)
-      db.close()
-    }
+    tx.oncomplete = () => resolve(req.result)
+    tx.onerror = () => reject(tx.error)
   })
 }
 
